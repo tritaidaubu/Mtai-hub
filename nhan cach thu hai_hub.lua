@@ -4,7 +4,7 @@ local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/d
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 ----------------------------------------------------------------------------------------------------------------------------------------------
 local Window = Fluent:CreateWindow({
-    Title = "Maris hub",
+    Title = "Tri Minh hub",
     SubTitle = "https://discord.com/invite/S4EtaxnZ3D",
     TabWidth = 160,
     Size = UDim2.fromOffset(530, 350),
@@ -40,14 +40,14 @@ Tabs.Main:AddButton({
     Callback = function()
         if checkboat() then
             Fluent:Notify({
-                Title = "Maris Hub",
+                Title = "Tri Minh Hub",
                 Content = "😃",
                 SubContent = "", -- Optional
                 Duration = 5 -- Set to nil to make the notification not disappear
             })
         else
             Fluent:Notify({
-                Title = "Maris Hub",
+                Title = "Tri Minh Hub",
                 Content = "Nigga",
                 SubContent = "", -- Optional
                 Duration = 5 -- Set to nil to make the notification not disappear
@@ -64,9 +64,9 @@ game:GetService("Players").LocalPlayer.Idled:connect(function()
 end)
 ------// BLOX FRUIT
 --// Sea world
-First_Sea = false
-Second_Sea = false
-Third_Sea = false
+First_Sea = true
+Second_Sea = true
+Third_Sea = true
 local placeId = game.PlaceId
 if placeId == 2753915549 then
 First_Sea = true
@@ -2814,7 +2814,7 @@ ImageButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ImageButton.Position = UDim2.new(0.120833337, 0, 0.0952890813, 0)
 ImageButton.Size = UDim2.new(0.0627121851, 0, 0.107579626, 0)
 ImageButton.Draggable = true
-ImageButton.Image = "http://www.roblox.com/asset/?id=16130568730"
+ImageButton.Image = "http://www.roblox.com/asset/?id=l17094709022"
 ImageButton.MouseButton1Down:connect(function()
     game:GetService("VirtualInputManager"):SendKeyEvent(true,Enum.KeyCode.End,false,game)
 end)
@@ -7255,7 +7255,7 @@ Tabs.Misc:AddButton({
 		for k, v in pairs(cac) do
 			if ListHuhu[v] and game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buy" .. v, true) == 1 then
 				local huhu = Instance.new("ImageLabel", MeleeG)
-				huhu.Image = "rbxassetid://9945562382"
+				huhu.Image = "rbxassetid://17094709022"
 				huhu.ImageRectSize = Vector2.new(100, 100)
 				huhu.ImageRectOffset = ListHuhu[v] * 100
 			end
@@ -7416,8 +7416,8 @@ InterfaceManager:SetFolder("ZedrScriptHub")
 SaveManager:SetFolder("ZedrScriptHub/specific-game")
 Window:SelectTab(1)
 Fluent:Notify({
-    Title = "Script By Hoai Nam",
-    Content = "Script Của Hoai Nam.",
+    Title = "Script By Tri Minh",
+    Content = "Script Của Tri Minh.",
     Duration = 8
 })
 SaveManager:LoadAutoloadConfig()
