@@ -1,0 +1,363 @@
+_G.EquipSound = 'none'
+_G.UnequipSound = 'none'
+_G.SlashSound = 'none'
+_G.StabSound = 'none'
+_G.HitSound = 'none'
+--[['Swim' or 'Jump' or 'Tools' or 'None' or 'Splash']]
+
+_G.Item = 'dagger2'
+wait(5) -- anti autoexec crash
+if cloneref then
+print('Cloneref exists')
+else
+cloneref = function(x)
+return x
+end
+end
+--cloneref protections
+Players = cloneref(game:GetService('Players'))
+ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
+SoundService = cloneref(game:GetService("SoundService"))
+CoreGui = cloneref(game:GetService('CoreGui'))
+--etc
+function Ts()
+if string.lower(_G.SlashSound) == 'tools' then
+for i,v in pairs(Players.LocalPlayer.Backpack:GetChildren()) do
+if v.Name ~= 'M9 Bayonet' then
+for i,d in pairs(v:GetDescendants()) do
+if d:IsA('BasePart') then
+if d.Transparency <= 1 or 2 or 3 then
+d.Transparency = 1
+else
+d.Name = 'Protected'
+end
+end
+end
+  v.Parent = Players.LocalPlayer.Character
+  v:Activate()
+  v:Deactivate()
+  wait()
+  x = game.Players.LocalPlayer.Character:FindFirstChild('M9 Bayonet')
+  v.Parent = Players.LocalPlayer.Backpack
+  x.Parent = nil
+  x.Parent = game.Players.LocalPlayer.Character
+    for i,d in pairs(v:GetDescendants()) do
+    if d:IsA('BasePart') then
+    if d.Transparency >= 1 or d.Transparency == 1 and d.Name ~= 'Protected' then
+    d.Transparency = 0
+    end
+    end
+    end
+end
+end
+end
+end
+jmppower = Players.LocalPlayer.Character.Humanoid.JumpPower
+function Glb() 
+if string.lower(_G.SlashSound) == 'swim' and game.GameId ~= (4807308814 or 66654135) then
+Players.LocalPlayer.Character.Humanoid:ChangeState(4)
+elseif string.lower(_G.SlashSound) == 'jump' and game.GameId ~= (4807308814 or 66654135) then
+
+Players.LocalPlayer.Character.Humanoid.JumpPower = 0.00001
+Players.LocalPlayer.Character.Humanoid.Jump = true
+wait() Players.LocalPlayer.Character.Humanoid.JumpPower = jmppower
+    elseif string.lower(_G.SlashSound) == 'splash' and game.GameId ~= (4807308814 or 66654135) then
+    Players.LocalPlayer.Character.Humanoid.JumpPower = 0.00001
+    Players.LocalPlayer.Character.Humanoid:ChangeState(4)
+    Players.LocalPlayer.Character.Humanoid.Jump = true
+    wait() Players.LocalPlayer.Character.Humanoid.JumpPower = jmppower
+    
+end
+end
+function Glbhit() 
+if string.lower(_G.HitSound) == 'swim' and game.GameId ~= (4807308814 or 66654135) then
+Players.LocalPlayer.Character.Humanoid:ChangeState(4)
+elseif string.lower(_G.HitSound) == 'jump' and game.GameId ~= (4807308814 or 66654135) then
+
+Players.LocalPlayer.Character.Humanoid.JumpPower = 0.00001
+Players.LocalPlayer.Character.Humanoid.Jump = true
+wait() Players.LocalPlayer.Character.Humanoid.JumpPower = jmppower
+    elseif string.lower(_G.HitSound) == 'splash' and game.GameId ~= (4807308814 or 66654135) then
+    Players.LocalPlayer.Character.Humanoid.JumpPower = 0.00001
+     Players.LocalPlayer.Character.Humanoid:ChangeState(4)
+    Players.LocalPlayer.Character.Humanoid.Jump = true
+    wait() Players.LocalPlayer.Character.Humanoid.JumpPower = jmppower
+    
+end
+end
+function Glbt() 
+if string.lower(_G.StabSound) == 'swim' and game.GameId ~= (4807308814 or 66654135) then
+Players.LocalPlayer.Character.Humanoid:ChangeState(4)
+elseif string.lower(_G.StabSound) == 'jump' and game.GameId ~= (4807308814 or 66654135) then
+
+Players.LocalPlayer.Character.Humanoid.JumpPower = 0.00001
+Players.LocalPlayer.Character.Humanoid.Jump = true
+wait() Players.LocalPlayer.Character.Humanoid.JumpPower = jmppower
+    elseif string.lower(_G.StabSound) == 'splash' and game.GameId ~= (4807308814 or 66654135) then
+    Players.LocalPlayer.Character.Humanoid.JumpPower = 0.00001
+    Players.LocalPlayer.Character.Humanoid:ChangeState(4)
+    Players.LocalPlayer.Character.Humanoid.Jump = true
+    wait() Players.LocalPlayer.Character.Humanoid.JumpPower = jmppower
+    
+end
+end
+function Glbu() 
+if string.lower(_G.UnequipSound) == 'swim' and game.GameId ~= (4807308814 or 66654135) then
+Players.LocalPlayer.Character.Humanoid:ChangeState(4)
+elseif string.lower(_G.UnequipSound) == 'jump' and game.GameId ~= (4807308814 or 66654135) then
+
+Players.LocalPlayer.Character.Humanoid.JumpPower = 0.00001
+Players.LocalPlayer.Character.Humanoid.Jump = true
+wait() Players.LocalPlayer.Character.Humanoid.JumpPower = jmppower
+    elseif string.lower(_G.UnequipSound) == 'splash' and game.GameId ~= (4807308814 or 66654135) then
+    Players.LocalPlayer.Character.Humanoid.JumpPower = 0.00001
+    Players.LocalPlayer.Character.Humanoid:ChangeState(4)
+    Players.LocalPlayer.Character.Humanoid.Jump = true
+    wait() Players.LocalPlayer.Character.Humanoid.JumpPower = jmppower
+    
+end
+end
+function Glbe() 
+if string.lower(_G.EquipSound) == 'swim' and game.GameId ~= (4807308814 or 66654135) then
+Players.LocalPlayer.Character.Humanoid:ChangeState(4)
+elseif string.lower(_G.EquipSound) == 'jump' and game.GameId ~= (4807308814 or 66654135) then
+
+Players.LocalPlayer.Character.Humanoid.JumpPower = 0.00001
+Players.LocalPlayer.Character.Humanoid.Jump = true
+wait() Players.LocalPlayer.Character.Humanoid.JumpPower = jmppower
+    elseif string.lower(_G.EquipSound) == 'splash' and game.GameId ~= (4807308814 or 66654135) then
+    Players.LocalPlayer.Character.Humanoid.JumpPower = 0.00001
+    Players.LocalPlayer.Character.Humanoid:ChangeState(4)
+    Players.LocalPlayer.Character.Humanoid.Jump = true
+    wait() Players.LocalPlayer.Character.Humanoid.JumpPower = jmppower
+    
+end
+end
+enabled = false
+local Sound = function(sound, speed)
+task.spawn(function()
+local S = Instance.new('Sound', Players.LocalPlayer.Character)
+S.SoundId = sound
+S:Play()
+local args = {
+[1] = 1,
+[2] = sound,
+[3] = speed
+}
+ReplicatedStorage.Events.HitReplicate:FireServer(unpack(args))
+  end)
+end
+function Equips()
+  Glbe()
+ if game.GameId == 4807308814 then
+Sound('rbxassetid://4681191260', 1)
+end
+end
+function Unequips()
+  Glbu()
+if game.GameId == 4807308814 then
+Sound('rbxassetid://5917818749', 1)
+end
+end
+function Slash()
+if game.GameId == 4807308814 then
+Sound('rbxassetid://935843979', 1)
+end
+end
+function Stab()
+  Glbt()
+if game.GameId == 4807308814 then
+Sound('rbxassetid://4122437525', 1)
+end
+end
+local Play = function(sound) 
+task.spawn(function() 
+sound:Play()
+local args = { 
+[1] = 1, 
+[2] = sound.SoundId, 
+[3] = sound.PlaybackSpeed 
+} 
+ReplicatedStorage.Events.HitReplicate:FireServer(unpack(args)) 
+end) 
+end
+
+
+function fesound(p)
+if game.GameId ~= 4807308814 then --1end
+if SoundService.RespectFilteringEnabled == false and enabled == true and (p.Parent:FindFirstChild('Humanoid') or p.Parent.Parent:FindFirstChild('Humanoid')) then --2end
+  if Players.LocalPlayer.Character.HumanoidRootPart:FindFirstChild('Died') then --3 end
+enabled = false  Players.LocalPlayer.Character.HumanoidRootPart:FindFirstChild('Died'):Play()
+  end --2end
+    else
+      if enabled == true then
+    Glbhit()
+enabled = false
+      end
+  end --1 end
+else
+  if enabled == true and (p.Parent:FindFirstChild('Humanoid') or p.Parent.Parent:FindFirstChild('Humanoid')) then --2 end
+    if Players.LocalPlayer.Character.HumanoidRootPart:FindFirstChild('Died') then -- end
+  enabled = false  Play(Players.LocalPlayer.Character.HumanoidRootPart:FindFirstChild('Died'))
+    end --2
+  end --1
+end --0
+end --just error checking
+local knife = Instance.new("Animation")
+knife.AnimationId = "rbxassetid://567480700"
+local knife1 = Instance.new("Animation")
+knife1.AnimationId = "rbxassetid://567479941"
+local stabs = Instance.new("Animation")
+stabs.AnimationId = "http://www.roblox.com/Asset?ID=80395075"
+local idleAnimation = Instance.new("Animation")
+idleAnimation.AnimationId = "rbxassetid://14997226633"
+local MobileButtons = Instance.new("ScreenGui")
+local stab = Instance.new("ImageButton")
+local slash = Instance.new("ImageButton")
+MobileButtons.Name = "MobileButtons"
+MobileButtons.Parent = CoreGui
+MobileButtons.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+stab.Name = "stab"
+stab.Parent = MobileButtons
+stab.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+stab.BackgroundTransparency = 0
+stab.BorderColor3 = Color3.fromRGB(0, 0, 0)
+stab.BorderSizePixel = 0
+stab.Position = UDim2.new(0.780211508, 0, 0.859340668, 0)
+stab.Size = UDim2.new(0.0755287036, 0, 0.109890111, 0)
+stab.Style = Enum.ButtonStyle.RobloxButtonDefault
+stab.Image = "http://www.roblox.com/asset/?id=17292220249"
+stab.ScaleType = 3
+stab.Visible = false
+stab.MouseButton1Down:Connect(function() Stab() Ts() task.spawn(function() enabled = true wait(1) if enabled == true then enabled = false end end)  local Anim = Instance.new("StringValue") 	Anim.Name = "toolanim" 	Anim.Value = "Slash" Anim.Parent = Players.LocalPlayer.Character['M9 Bayonet'] end)
+slash.Name = "slash"
+slash.Parent = MobileButtons
+slash.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+slash.BackgroundTransparency = 0
+slash.BorderColor3 = Color3.fromRGB(0, 0, 0)
+slash.BorderSizePixel = 0
+slash.Position = UDim2.new(0.883685827, 0, 0.624175811, 0)
+slash.Size = UDim2.new(0.0755287036, 0, 0.109890111, 0)
+slash.Image = "http://www.roblox.com/asset/?id=17292274805"
+slash.Style = Enum.ButtonStyle.RobloxButtonDefault
+slash.ScaleType = 3
+slash.Visible = false
+slash.MouseButton1Down:Connect(function()
+    Ts()
+Glb()
+  task.spawn(function()
+  enabled = true
+  wait(1)
+
+  if enabled == true then enabled = false
+            end
+          end)
+  Slash()
+  if game.GameId == 66654135 then
+  local animation1 = Instance.new("Animation")
+  animation1.AnimationId = "rbxassetid://2467567750"
+  local animation2 = Instance.new("Animation")
+  animation2.AnimationId = "rbxassetid://1957890538"
+  local anims = {animation1,animation2}
+  local an = Players.LocalPlayer.Character.Humanoid:LoadAnimation(anims[math.random(1,2)])
+  an:Play()
+  else
+
+    local humanoid = Players.LocalPlayer.Character:WaitForChild("Humanoid")
+    humanoid:LoadAnimation(knife):Play()
+    humanoid:LoadAnimation(knife):Stop()
+    humanoid:LoadAnimation(knife1):Play()
+    humanoid:LoadAnimation(knife1):Stop()
+  end
+
+end)
+function FindKnife()
+if Players.LocalPlayer.Character:FindFirstChild(_G.Item) then
+  k = Players.LocalPlayer.Character[_G.Item]
+elseif Players.LocalPlayer.Character:FindFirstChild('ACCESSORY_'.._G.Item) then
+  k = Players.LocalPlayer.Character:FindFirstChild('ACCESSORY_'.._G.Item)
+else
+for i,c in pairs(Players.LocalPlayer.Character:GetDescendants()) do
+    if c.Name == 'ACCESSORY_'.._G.Item or _G.Item then
+k = c
+    else
+k = false
+    end
+  end
+end
+return k
+end
+function GetKnife()
+k = FindKnife()
+char = k.Parent
+k.Parent = nil
+local gunTool = Instance.new("Tool")
+gunTool.Name = "M9 Bayonet"
+gunTool.TextureId = "http://www.roblox.com/asset/?id=7137398850"
+gunTool.Parent = Players.LocalPlayer.Backpack
+local handle = Instance.new("Part")
+handle.Name = "Handle"
+handle.Parent = gunTool
+handle.Transparency = 1 
+handle.Touched:Connect(function(a)
+fesound(a)
+if game.GameId == 155615604 then
+if v.Parent:FindFirstChild('Humanoid') and game.Players:GetPlayerFromCharacter(v.Parent) then
+plr = game.Players:GetPlayerFromCharacter(v.Parent)
+local meleeEvent = game:GetService("ReplicatedStorage").meleeEvent
+meleeEvent:FireServer(plr)
+end
+end
+  end)
+gunTool.Equipped:Connect(function()
+    Equips()
+stab.Visible = true
+slash.Visible = true
+    k.Parent = char
+  local humanoid = Players.LocalPlayer.Character:WaitForChild("Humanoid")
+  local animator = humanoid:WaitForChild("Animator")
+  animator:LoadAnimation(idleAnimation):Play()
+end)
+gunTool.Unequipped:Connect(function()
+Unequips()
+    stab.Visible = false
+    slash.Visible = false
+    k.Parent = nil
+  local humanoid = Players.LocalPlayer.Character:WaitForChild("Humanoid")
+  humanoid:LoadAnimation(idleAnimation):Stop()
+end)
+gunTool.Activated:Connect(function()
+    Ts()
+    Glb()
+    task.spawn(function()
+enabled = true
+wait(1)
+if enabled == true then enabled = false
+        end
+      end)
+    Slash()
+    if game.GameId == 66654135 then
+    local animation1 = Instance.new("Animation")
+    animation1.AnimationId = "rbxassetid://2467567750"
+    local animation2 = Instance.new("Animation")
+    animation2.AnimationId = "rbxassetid://1957890538"
+    local anims = {animation1,animation2}
+    local an = Players.LocalPlayer.Character.Humanoid:LoadAnimation(anims[math.random(1,2)])
+    an:Play()
+    else
+
+      local humanoid = Players.LocalPlayer.Character:WaitForChild("Humanoid")
+      humanoid:LoadAnimation(knife):Play()
+      humanoid:LoadAnimation(knife):Stop()
+      humanoid:LoadAnimation(knife1):Play()
+      humanoid:LoadAnimation(knife1):Stop()
+    end
+end)
+end
+GetKnife()
+Players.LocalPlayer.CharacterAdded:Connect(function()
+  if not Players.LocalPlayer.Character:FindFirstChild(_G.Item)  or not Players.LocalPlayer.Character:FindFirstChild('ACCESSORY_'.._G.Item)  then
+    repeat wait() until Players.LocalPlayer.Character:FindFirstChild(_G.Item) or Players.LocalPlayer.Character:FindFirstChild('ACCESSORY_'.._G.Item) 
+GetKnife()
+  end
+end)
