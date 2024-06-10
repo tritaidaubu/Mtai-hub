@@ -1,0 +1,1270 @@
+if not _G.Log then _G.Log = true; end
+
+if _G.Log then print('Loading DOORS Chat Admin V1.5'); end
+
+--SETUP
+local netaccess = coroutine.create(function()
+    settings().Physics.AllowSleep = false
+    RunService.RenderStepped:Connect(function ()
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v.Name ~= game.Players.LocalPlayer.Name then
+                v.MaximumSimulationRadius = 0
+                sethiddenproperty(v, 'SimulationRadius', 0)
+            end
+        end
+    end)
+    game.Players.LocalPlayer.MaximumSimulationRadius = math.pow(math.huge, math.huge)
+    setsimulationradius(math.huge)
+end)
+coroutine.resume(netaccess)
+
+--SERVICES
+local PxPromptService = game:GetService('ProximityPromptService')
+local TweenService = game:GetService('TweenService')
+local RunService = game:GetService('RunService')
+local UserInputService = game:GetService('UserInputService')
+
+--MAIN VARIABLES
+local plr = game.Players.LocalPlayer
+local char = plr.Character
+local hum = char:WaitForChild('Humanoid')
+
+local defaultCanCollide = {}
+for i, v in pairs(char:GetDescendants()) do
+	if (v:IsA('Part') or v:IsA('BasePart') or v:IsA('MeshPart')) then
+		defaultCanCollide[tostring(i)] = tostring(v.CanCollide)
+	end
+end
+
+local dWs = hum:GetAttribute("SpeedBoost")
+local ws = dWs
+
+local noclipenabled = false
+local wsenabled = true
+
+local bkillplayer
+local bkillenabled = false
+local bkillall = false
+local jkillplayer
+local jkillenabled
+local jkillall = false
+local espenabled = false
+local espfunction
+local espenabledca
+local espenabledda
+local latestespentity
+local dupeconn
+local seekconn
+local snareconn
+local roomlocksconn
+
+local speedbypassv = false
+
+local pushaurasize = 17
+local pushaurapower = 10
+local pushbananas, pushjeff, pushua = false
+local offbananas = false
+
+
+--SOME VARIABLES
+local collision, defaultC0, cweld, defaultCPP
+if char:FindFirstChild('Collision') then
+	collision = char.Collision
+	defaultCPP = collision.CustomPhysicalProperties
+	if collision:FindFirstChildOfClass('ManualWeld') then
+		cweld = collision:FindFirstChildOfClass('ManualWeld')
+		defaultC0 = cweld.C0
+	end
+end
+
+if not collision and _G.Log then warn('\nWarning : character collision not found, script will work abnormal'); end
+
+--FUNCTIONS AND CONNECTIONS
+
+function newinstance(itype, iparent, iproperties)
+	if typeof(itype) ~= 'string' then return; end
+	if typeof(iparent) ~= 'Instance' then iparent = nil; end
+	local i = Instance.new(itype, iparent)
+	if iproperties and typeof(iproperties) == 'table' then for property, value in pairs(iproperties) do
+		pcall(function()
+			i[property] = value
+		end)
+	end; end
+	return i
+end
+function pushpart(parttopush, part0, part1, pushpower)
+	local distance = (part0.Position - part1.Position).Magnitude
+	local force = (15 - distance) * pushpower
+	parttopush.Velocity = (force * (part0.Position - part1.Position).Unit)
+end
+
+local pushaurapart = newinstance('Part', game.Workspace, {Name = 'Aura', Transparency = 1, Massless = true, CastShadow = false, CFrame = char:GetPivot(), CanCollide = false, CanTouch = true, Size = Vector3.new(pushaurasize, pushaurasize, pushaurasize), Shape = 'Ball'})
+local pushsafepart = newinstance('Part', char, {Name = 'SafeAura', Transparency = 1, Massless = true, CastShadow = false, CFrame = char:GetPivot(), CanCollide = false, CanTouch = true, Size = char:GetExtentsSize() + Vector3.new(1, 1, 1)})
+
+newinstance('ManualWeld', pushaurapart, {C0 = CFrame.new(0, 0.5, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1), C1 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1), Part0 = pushaurapart, Part1 = char.HumanoidRootPart})
+newinstance('ManualWeld', pushsafepart, {C0 = CFrame.new(0, 0.6, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1), C1 = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1), Part0 = pushsafepart, Part1 = char.HumanoidRootPart})
+function pushOnTouch(o)
+    if not o.Anchored then
+        if pushbananas and string.find(o.Name, 'Banana') then pushpart(o, o, pushaurapart, pushaurapower); end
+        if pushjeff and string.find(o.Parent.Name, 'Jeff') then pushpart(o, o, pushaurapart, pushaurapower * 8); end
+        if not string.find(o.Name, 'Banana') and not string.find(o.Parent.Name, 'Jeff') and pushua then 
+            pushpart(o, o, pushaurapart, pushaurapower); 
+        end
+    end
+end
+pushaurapart.Touched:Connect(pushOnTouch)
+pushsafepart.Touched:Connect(pushOnTouch)
+
+function mesg(abb, last) 
+	local TS = game:GetService("TweenService") 
+	local message = Instance.new("ScreenGui") 
+	message.Name = "CustomMessages" 
+	message.Parent = game.CoreGui
+	local msg = Instance.new("Frame") 
+	msg.Name = "msg" 
+	msg.Parent = message 
+	msg.BackgroundColor3 = Color3.fromRGB(137, 207, 240) 
+	msg.BackgroundTransparency = 1 
+	msg.Size = UDim2.new(0.3, 0, 0.1, 0) 
+	msg.Position = UDim2.new(0.37, 0, 0.8, 0) 
+	local UIC = Instance.new("UICorner") ;UIC.Parent = msg 
+	UIC.CornerRadius = UDim.new(0, 15) 
+	local TL = Instance.new("TextLabel") 
+	TL.Name = "Message" 
+	TL.Font = "Oswald" ;TL.Parent = msg ;TL.Text = abb 
+	TL.TextColor3 = Color3.fromRGB(251, 206, 176) 
+	TL.Position = UDim2.new(0.49, 0, 0.5, 0) 
+	TL.TextSize = 28 
+	TL.BorderSizePixel = 0 
+	local TW2 = {} 
+	TW2.BackgroundTransparency = 1 
+	local TW3 = {} 
+	TW3.TextTransparency = 1 
+	local tI = TweenInfo.new(last) 
+	tw = TS:Create(msg, tI, TW2) 
+	tw:Play() 
+	twa = TS:Create(TL, tI, TW3) 
+	twa:Play() ;wait(last) 
+    message:Destroy() 
+end
+
+local function vcollide(obj, cancollide)
+    if typeof(obj) ~= 'Instance' or obj == nil or typeof(cancollide) ~= 'boolean' or cancollide == nil then     return;     end
+    if obj:IsA('Part') or obj:IsA('MeshPart') or obj:IsA('TrussPart') or obj:IsA('WedgePart') or obj:IsA('BasePart') then
+        obj.CanCollide = cancollide;
+    end
+    for _, v in pairs(obj:GetDescendants()) do
+        if v:IsA('BasePart') or v:IsA('Part') or v:IsA('TrussPart') or v:IsA('WedgePart') or v:IsA('MeshPart') then
+            v.CanCollide = cancollide;
+        end
+    end
+end
+
+local function vtouch(obj, cantouch)
+    if typeof(obj) ~= 'Instance' or obj == nil or typeof(cantouch) ~= 'boolean' or cantouch == nil then     return;     end
+    if obj:IsA('Part') or obj:IsA('MeshPart') or obj:IsA('TrussPart') or obj:IsA('WedgePart') or obj:IsA('BasePart') then
+        obj.CanTouch = cantouch;
+    end
+    for _, v in pairs(obj:GetDescendants()) do
+        if v:IsA('BasePart') or v:IsA('Part') or v:IsA('TrussPart') or v:IsA('WedgePart') or v:IsA('MeshPart') then
+            v.CanTouch = cantouch;
+        end
+    end
+end
+
+function InstanceStringFind(obj, str, mode)
+    if not obj or not string or typeof(obj) ~= 'Instance' or typeof(str) ~= 'string' or typeof(mode) ~= 'boolean' then return; end
+    local x;
+    if mode == true then x = obj:GetDescendants(); else x = obj:GetChildren(); end
+    for _, v in pairs(x) do if string.find(v.Name, str) then return v; end; end;
+end
+function SetBodyRotation(mode)
+	if not collision then return; end
+	local oldpos = collision:GetPivot()
+	wait(.1)
+	if mode ~= 'normal' then
+		collision.CanCollide = false
+		collision.CustomPhysicalProperties = nil
+	elseif mode == 'normal' then
+		collision.CanCollide = true
+		collision.CustomPhysicalProperties = defaultCPP
+	end
+	if mode == 'normal' then
+		cweld.C0 = defaultC0
+	elseif mode == 'up' then 
+		cweld.C0 = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(-90), 0, 0)
+	elseif mode == 'down' then
+		cweld.C0 = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(90), 0, 0)
+	elseif mode == 'upsidedown' then
+		cweld.C0 = CFrame.new(0, -0.335, 0.3) * CFrame.Angles(math.rad(180), math.rad(180), 0)
+	elseif mode == 'left' then
+		cweld.C0 = CFrame.new(0, 0, 0) * CFrame.Angles(0, 0, math.rad(-90))
+	elseif mode == 'right' then
+		cweld.C0 = CFrame.new(0, 0, 0) * CFrame.Angles(0, 0, math.rad(90))
+	end
+	wait()
+	collision:PivotTo(oldpos)
+end
+function getbananas()
+    local i = 0; local out = {}
+    for _, v in pairs(game.Workspace:GetChildren()) do
+        if v:IsA('BasePart') and string.find(v.Name, 'Banana') then
+            i += 1; out[i] = v
+        end
+    end
+    return out
+end
+function antibananas()
+    while offbananas == true and hum and hum.Health > 0 do
+        for _, v in pairs(getbananas()) do
+            vtouch(v, false)
+        end
+        RunService.RenderStepped:Wait()
+    end
+end
+function bkill(player)
+	local pchar = player.Character
+	while not bkillall and bkillenabled and pchar and pchar:FindFirstChild('HumanoidRootPart') and pchar:FindFirstChildOfClass('Humanoid') and pchar:FindFirstChildOfClass('Humanoid').Health > 0 do
+		for _, v in pairs(getbananas()) do
+			v:PivotTo(pchar:GetPivot())
+		end
+		task.wait()
+	end
+end
+
+function speedbypass()
+   while collision and speedbypassv do
+       collision.Massless = not collision.Massless
+       wait(0.24)
+    end
+end
+
+function fekilljeff(jeff)
+   while true do
+       if jeff then
+       task.wait(.125)
+       jeff:PivotTo(jeff:GetPivot() * CFrame.new(0, -5, 0))
+       task.wait()
+       elseif not jeff then
+           break
+       end
+    end
+end
+
+function tpbananasall()
+	for _, v in pairs(game.Players:GetPlayers()) do
+		local pchar = v.Character
+		if v.Name ~= plr.Name and pchar and pchar:FindFirstChild('HumanoidRootPart') and pchar:FindFirstChildOfClass('Humanoid') and pchar:FindFirstChildOfClass('Humanoid').Health > 0  then
+			for i, b in pairs(getbananas()) do
+				task.spawn(function()
+                b:PivotTo(pchar:GetPivot())
+        end)
+			end
+			task.wait(.125)
+		end
+	end
+end
+
+function bkillallplrs()
+	while bkillall and not bkillenabled do
+		tpbananasall()
+		task.wait()
+	end
+end
+
+function tpjeff(player)
+	local jeff = InstanceStringFind(game.Workspace, 'Jeff', false)
+	if jeff and (jeff:IsA('Model') or jeff:IsA('BasePart')) and jeff:FindFirstChildOfClass('Humanoid', true) then 
+		local pchar = player.Character
+		if pchar and pchar:FindFirstChild('HumanoidRootPart') and pchar:FindFirstChildOfClass('Humanoid') and pchar:FindFirstChildOfClass('Humanoid').Health > 0  then
+			jeff:PivotTo(pchar:GetPivot())
+			task.wait()
+		end
+	end
+end
+
+local latestespgui, latestesp
+
+function createESP(espfind, text, yoffset, adornee)
+    local newBG = Instance.new("BillboardGui")
+    newBG.Name = "ESPBillboardGui"
+    newBG.Parent = espfind
+    newBG.AlwaysOnTop = true
+    newBG.Adornee = adornee
+    newBG.Size = UDim2.new(3, 0, 3, 0)
+    newBG.StudsOffset = Vector3.new(0,yoffset,0)
+    local newTL = Instance.new("TextLabel")
+    newTL.BackgroundTransparency = 1
+    newTL.Text = ""
+    newTL.Name = "ESPTextLabel"
+    newTL.Font = "Oswald"
+    newTL.Parent = newBG
+    newTL.Size = UDim2.new(1,0, 1,0)
+    newTL.TextScaled = true
+    newTL.Text = text
+    latestespgui = newBG
+    local newH = Instance.new("Highlight")
+    newH.Name = "ESPHighlight"
+    newH.Parent = espfind
+    newH.Enabled = true
+    newH.Adornee = espfind
+    latestesp = newH
+
+    return newTL, newH, newBG
+end
+
+function processESPObject(espfind)
+    if espfind.Name == "KeyObtain" and not espfind:FindFirstChild("ESPHighlight") and not espfind:FindFirstChild("ESPBillboardGui") and workspace.CurrentRooms:WaitForChild(game.ReplicatedStorage.GameData.LatestRoom.Value):FindFirstChild("Door") and workspace.CurrentRooms:WaitForChild(game.ReplicatedStorage.GameData.LatestRoom.Value).Door:FindFirstChild("Lock") then
+        local newTL, newH, newBG = createESP(espfind, "Key", 3, espfind)
+        newH.FillColor = Color3.fromRGB(132, 115, 97)
+        newH.OutlineColor = Color3.fromRGB(253, 234, 141)
+        newTL.TextColor3 = newH.FillColor
+        newTL.TextStrokeColor3 = newH.OutlineColor
+        newTL.TextStrokeTransparency = 0
+    elseif string.find(espfind.Name, "Crucifix") and not espfind:FindFirstChild("ESPHighlight") and not espfind:FindFirstChild("ESPBillboardGui") and espfind:FindFirstChild("Handle") and espfind.Parent.Name ~= "Hidden" and espfind.Parent.Parent.Name ~= "DoorFake" and espfind.Parent.Parent.Name ~= "ShopStuff" then
+        local newTL, newH, newBG = createESP(espfind, "Crucifix", 3, espfind)
+        newH.FillColor = Color3.fromRGB(81, 69, 63)
+        newH.OutlineColor = Color3.fromRGB(78, 102, 255)
+        newTL.TextColor3 = newH.FillColor
+        newTL.TextStrokeColor3 = newH.OutlineColor
+        newTL.TextStrokeTransparency = 0
+    elseif espfind.Name == "LeverForGate" and not espfind:FindFirstChild("ESPHighlight") and not espfind:FindFirstChild("ESPBillboardGui") then
+        local newTL, newH, newBG = createESP(espfind, "Lever", 3, espfind)
+        newH.FillColor = Color3.fromRGB(99, 98, 96)
+        newH.OutlineColor = Color3.fromRGB(234, 158, 91)
+        newTL.TextColor3 = newH.FillColor
+        newTL.TextStrokeColor3 = newH.OutlineColor
+        newTL.TextStrokeTransparency = 0
+    elseif espfind.Name == "LiveBreakerPolePickup" and not espfind:FindFirstChild("ESPHighlight") and not espfind:FindFirstChild("ESPBillboardGui") then
+        local newTL, newH, newBG = createESP(espfind, "Breaker", 3, espfind)
+        newH.FillColor = Color3.fromRGB(68, 65, 64)
+        newH.OutlineColor = Color3.fromRGB(85, 170, 0)
+        newTL.TextColor3 = newH.FillColor
+        newTL.TextStrokeColor3 = newH.OutlineColor
+        newTL.TextStrokeTransparency = 0
+    elseif espfind.Name == "LiveHintBook" and not espfind:FindFirstChild("ESPHighlight") and not espfind:FindFirstChild("ESPBillboardGui") then
+        local newTL, newH, newBG = createESP(espfind, "Book", 3, espfind)
+        local CoverOne = espfind["Cover1"] or espfind:WaitForChild("Cover1")
+    if CoverOne then
+        newH.FillColor = Color3.fromRGB(132, 84, 95)
+        newH.OutlineColor = CoverOne.Color
+        newTL.TextColor3 = newH.FillColor
+        newTL.TextStrokeColor3 = newH.OutlineColor
+        newTL.TextStrokeTransparency = 0
+    elseif not CoverOne then
+            newH.FillColor = Color3.fromRGB(132, 84, 95)
+            newH.OutlineColor = Color3.fromRGB(218, 133, 65)
+            newTL.TextColor3 = newH.FillColor
+            newTL.TextStrokeColor3 = newH.OutlineColor
+            newTL.TextStrokeTransparency = 0
+        end
+    elseif (string.find(espfind.Name, "SkeletonKey")) and not espfind:FindFirstChild("ESPHighlight") and not espfind:FindFirstChild("ESPBillboardGui") and espfind.Parent.Parent.Name ~= "ShopStuff" then
+        local newTL, newH, newBG = createESP(espfind, "Skeleton Key", 3, espfind)
+        newH.FillColor = Color3.fromRGB(122, 118, 115)
+        newH.OutlineColor = Color3.fromRGB(197, 109, 255)
+        newTL.TextColor3 = newH.FillColor
+        newTL.TextStrokeColor3 = newH.OutlineColor
+        newTL.TextStrokeTransparency = 0
+    elseif espfind.Name == "FigureRagdoll" and not espfind:FindFirstChild("ESPHighlight") and not espfind:FindFirstChild("ESPBillboardGui") then
+        local newTL, newH, newBG = createESP(espfind, "Figure", 6.75, espfind)
+        newH.FillColor = Color3.fromRGB(120, 82, 84)
+        newH.OutlineColor = Color3.fromRGB(255, 0, 0)
+        newTL.TextColor3 = newH.FillColor
+        newTL.TextStrokeColor3 = newH.OutlineColor
+        newTL.TextStrokeTransparency = 0 
+    end
+end
+
+
+local latestRoom = game.ReplicatedStorage.GameData.LatestRoom
+local currentRooms = workspace.CurrentRooms
+local checkedObjects = {}
+local breakESP = false
+
+function esp()
+   if espenabled then
+    espfunction = workspace.ChildAdded:Connect(function(entity)
+    task.wait(0.125)
+         if entity.Name == "RushMoving" or entity.Name == "AmbushMoving" and espenabled then
+            local RushNew = entity.PrimaryPart or entity:WaitForChild("RushNew")
+            if not RushNew then
+               if entity:FindFirstChild("Bald Kreek") then
+                  RushNew = entity["Bald Kreek"]
+               end
+            end
+            if RushNew then
+            local rushambushdist = (game.Players.LocalPlayer.Character.PrimaryPart.Position - RushNew.Position).Magnitude
+            if rushambushdist <= 10000 and not entity:FindFirstChild("ESPHighlight") and not entity:FindFirstChild("ESPBillboardGui") and espenabled then
+               local newTL, newH, newBG = createESP(entity, "", 4.25, entity)
+               if entity.Name == "AmbushMoving" then
+               RushNew.Color = Color3.fromRGB(0, 255, 0)
+               newBG.StudsOffset = Vector3.new(0,6.25,0)
+               if RushNew.Name == "RushNew" then
+               newTL.Text = "Ambush"
+               elseif RushNew.Name ~= "RushNew" then
+                   newTL.Text = RushNew.Name
+               end
+               elseif entity.Name == "RushMoving" then
+                   RushNew.Color = Color3.fromRGB(34, 34, 34)
+                   if RushNew.Name == "RushNew" then
+                   newTL.Text = "Rush"
+                   elseif RushNew.Name ~= "RushNew" then
+                       newTL.Text = RushNew.Name
+                   end
+               end
+               
+               RushNew.Transparency = 0
+               latestespentity = RushNew
+
+                       if entity.Name == "AmbushMoving" then
+                           newH.FillColor = Color3.fromRGB(0, 255, 0)
+                           newH.OutlineColor = Color3.fromRGB(255, 0, 0)
+                           newTL.TextColor3 = newH.FillColor
+                           newTL.TextStrokeColor3 = newH.OutlineColor
+                           newTL.TextStrokeTransparency = 0
+                       elseif entity.Name == "RushMoving" then
+                           newH.FillColor = Color3.fromRGB(34, 34, 34)
+                           newH.OutlineColor = Color3.fromRGB(255, 0, 0)
+                           newTL.TextColor3 = newH.FillColor
+                           newTL.TextStrokeColor3 = newH.OutlineColor
+                           newTL.TextStrokeTransparency = 0
+                       end
+            end
+        end
+        elseif entity.Name == "Eyes" and not entity:FindFirstChild("ESPHighlight") and not entity:FindFirstChild("ESPBillboardGui") and espenabled then
+            local Core = entity.PrimaryPart or entity:WaitForChild("Core")
+            if Core then
+            local eyesdist = (game.Players.LocalPlayer.Character.PrimaryPart.Position - Core.Position).Magnitude
+            if eyesdist <= 10000 and not entity:FindFirstChild("ESPHighlight") and not entity:FindFirstChild("ESPBillboardGui") and espenabled then
+               Core.Transparency = 0
+               latestespentity = Core
+               local newTL, newH, newBG = createESP(entity, "Eyes", 4, entity)
+               Core.Color = Color3.fromRGB(170, 0, 255)
+                    newH.FillColor = Color3.fromRGB(170, 0, 255)
+                    newH.OutlineColor = Color3.fromRGB(255, 0, 0)
+                    newTL.TextColor3 = newH.FillColor
+                    newTL.TextStrokeColor3 = newH.OutlineColor
+                    newTL.TextStrokeTransparency = 0
+               end
+            end
+            elseif entity.Name == "SeekMoving" and not entity:FindFirstChild("ESPHighlight") and not entity:FindFirstChild("ESPBillboardGui") and espenabled then
+                local SeekRig = entity:WaitForChild("SeekRig")
+                if SeekRig then
+                local newTL, newH, newBG = createESP(entity, "Seek", 6, entity)
+                       newH.FillColor = Color3.fromRGB(0, 0, 0)
+                       newH.OutlineColor = Color3.fromRGB(255, 0, 0)
+                       newTL.TextColor3 = newH.FillColor
+                       newTL.TextStrokeColor3 = newH.OutlineColor
+                       newTL.TextStrokeTransparency = 0
+            end
+         elseif entity.Name == "JeffTheKiller" and not entity:FindFirstChild("ESPHighlight") and not entity:FindFirstChild("ESPBillboardGui") and espenabled then
+             local head = entity.Head or entity:WaitForChild("Head")
+             local newTL, newH, newBG = createESP(entity, "Jeff The Killer", 4, head)
+                       newH.FillColor = Color3.fromRGB(255, 255, 255)
+                       newH.OutlineColor = Color3.fromRGB(255, 0, 0)
+                       newTL.TextColor3 = newH.FillColor
+                       newTL.TextStrokeColor3 = newH.OutlineColor
+                       newTL.TextStrokeTransparency = 0
+        elseif entity.Name == "A60" and not entity:FindFirstChild("ESPHighlight") and not entity:FindFirstChild("ESPBillboardGui") and espenabled then
+            local A60Primary = entity.PrimaryPart or entity.Main or entity:WaitForChild("Main")
+            if A60Primary then
+               local A60dist = (game.Players.LocalPlayer.Character.PrimaryPart.Position - A60Primary.Position).Magnitude
+               if A60dist <= 10000 and not entity:FindFirstChild("ESPHighlight") and not entity:FindFirstChild("ESPBillboardGui") and espenabled then
+                    A60Primary.Transparency = 0
+                    latestespentity = A60Primary
+                    local newTL, newH, newBG = createESP(entity, "A60", 4.25, entity)
+                    A60Primary.Color = Color3.fromRGB(90, 0, 0)
+                    newH.FillColor = Color3.fromRGB(90, 0, 0)
+                    newH.OutlineColor = Color3.fromRGB(255, 0, 0)
+                    newTL.TextColor3 = newH.FillColor
+                    newTL.TextStrokeColor3 = newH.OutlineColor
+                    newTL.TextStrokeTransparency = 0
+               end
+            end
+         end
+     end)
+      
+
+function detectObjects()
+    local totalObjects = 0
+    local objectsChecked = 0
+    local existingObjects = {}
+    
+    for _, room in pairs(workspace.CurrentRooms:GetChildren()) do
+        totalObjects += #room:GetDescendants()
+        
+        -- Add a connection to the AncestryChanged event of the Room object
+        room.AncestryChanged:Connect(function(_, parent)
+            if not parent then -- If the parent of the Room object is nil, it means the object has been deleted
+                breakESP = true
+            end
+        end)
+
+        -- Add a connection to the DescendantAdded event of the Room object
+        room.DescendantAdded:Connect(function(descendant)
+            totalObjects += 1
+        end)
+        
+        for _, espfind in ipairs(room:GetDescendants()) do
+            if breakESP then
+                breakESP = false
+                break
+            end
+            
+            -- Rest of the code remains the same
+            if not checkedObjects[espfind] and espfind.Name ~= nil then
+                if (espfind.Name == "KeyObtain" and espfind:FindFirstChild("ESPHighlight") and espfind:FindFirstChild("ESPBillboardGui")) or (string.find(espfind.Name, "Crucifix") and espfind:FindFirstChild("ESPHighlight") and espfind:FindFirstChild("ESPBillboardGui")) or (espfind.Name == "LeverForGate" and espfind:FindFirstChild("ESPHighlight") and espfind:FindFirstChild("ESPBillboardGui")) or (espfind.Name == "LiveBreakerPolePickup" and espfind:FindFirstChild("ESPHighlight") and espfind:FindFirstChild("ESPBillboardGui")) or (espfind.Name == "LiveHintBook" and espfind:FindFirstChild("ESPHighlight") and espfind:FindFirstChild("ESPBillboardGui")) or ((string.find(espfind.Name, "SkeletonKey")) and espfind:FindFirstChild("ESPHighlight") and espfind:FindFirstChild("ESPBillboardGui")) then
+                    checkedObjects[espfind] = true
+                elseif not (espfind.Name == "KeyObtain") and not (string.find(espfind.Name, "Crucifix")) and not (espfind.Name == "LeverForGate") and not (espfind.Name == "LiveBreakerPolePickup") and not (espfind.Name == "LiveHintBook") and not (string.find(espfind.Name, "SkeletonKey")) then
+                    checkedObjects[espfind] = true
+                end
+                
+                task.spawn(function()
+                    processESPObject(espfind)
+                end)
+
+                if checkedObjects[espfind] and not existingObjects[espfind] then
+                existingObjects[espfind] = true
+                objectsChecked += 1
+                end
+                
+                if objectsChecked == totalObjects then
+                    breakESP = true -- Break out of the for loop
+                end
+            end
+        end
+        
+        if breakESP then
+            breakESP = false
+            break -- Break out of the outer loop if the Room object has been deleted
+        end
+    end
+end
+
+function whileespdol()
+while espenabled do
+    detectObjects()
+    task.wait(0.5) -- Wait for half a second before checking again
+end
+end
+
+whileespdol()
+
+      elseif not espenabled then
+         if latestesp then
+         latestesp:Destroy()
+         end
+         if latestespgui then
+         latestespgui:Destroy()
+         end
+         if latestespentity then
+            latestespentity.Transparency = 1
+         end
+         if espfunction and espfunction.Connected then
+            espfunction:Disconnect()
+         end
+   end
+end
+
+function tpjeffall()
+	local jeff = InstanceStringFind(game.Workspace, 'Jeff', false)
+	if jeff and (jeff:IsA('Model') or jeff:IsA('BasePart')) and jeff:FindFirstChildOfClass('Humanoid', true) then
+		for _, v in pairs(game.Players:GetPlayers()) do
+			local pchar = v.Character
+			if v.Name ~= plr.Name and pchar and pchar:FindFirstChild('HumanoidRootPart') and pchar:FindFirstChildOfClass('Humanoid') and pchar:FindFirstChildOfClass('Humanoid').Health > 0  then
+				jeff:PivotTo(pchar:GetPivot())
+				task.wait(.155)
+			end
+		end
+	end	
+end
+
+function jkill(player)
+	local jeff = InstanceStringFind(game.Workspace, 'Jeff', false)
+	local pchar = player.Character
+	while jeff and not jkillall and jkillenabled and pchar and pchar:FindFirstChild('HumanoidRootPart') and pchar:FindFirstChildOfClass('Humanoid') and pchar:FindFirstChildOfClass('Humanoid').Health > 0 do
+		jeff:PivotTo(pchar:GetPivot())
+		task.wait()
+	end
+end
+
+function jkillall()
+	local jeff = InstanceStringFind(game.Workspace, 'Jeff', false)
+	while jkillall and not jkillenabled and jeff do
+		tpjeffall()
+		task.wait()
+	end
+end
+
+function eentitymove(shakep, spd, sloops)
+	local function entitymove(rooms, obj, speed, changingprops, shake, shakepower)
+		local function getPoints(room)
+			if not room or typeof(room) ~= 'Instance' then return; end
+			if room.Parent ~= game.Workspace.CurrentRooms then return; end
+			local RoomStart = room:FindFirstChild('RoomEntrance')
+			local RoomBase = room:FindFirstChild('Base')
+			local RoomExit = room:FindFirstChild('RoomExit')
+			local BaseYPart = RoomStart or RoomExit
+			
+			local roomstartcf, roombasecf, roomexitcf
+			if RoomStart and RoomStart:IsA('BasePart') then roomstartcf = RoomStart.CFrame; end
+			if RoomExit and RoomExit:IsA('BasePart') then roomexitcf = RoomExit.CFrame; end
+			if RoomBase and BaseYPart and BaseYPart:IsA('BasePart') and RoomBase:IsA('BasePart') then
+				roombasecf = CFrame.new(RoomBase.Position.X, BaseYPart.Position.Y, RoomBase.Position.Z)
+			end
+			
+			local returnvalues = {}
+			--if roomstartcf then table.insert(returnvalues, roomstartcf); end
+			if roombasecf then table.insert(returnvalues, roombasecf); end
+			if roomexitcf then table.insert(returnvalues, roomexitcf); end
+			
+			return returnvalues
+		end		
+
+		local cframepoints = {}
+		for _, v in pairs(rooms) do
+			local points = getPoints(v)
+			for i, p in pairs(points) do
+				table.insert(cframepoints, p)
+			end
+		end		
+
+		task.spawn(function()
+			local tInfo = TweenInfo.new(25 / speed, Enum.EasingStyle.Linear)
+			local tweens = {}
+			local oldobjcf = obj:GetPivot()
+			local cfval = Instance.new('CFrameValue', game.Workspace)
+			local startcfval = rooms[1]:FindFirstChild('RoomEntrance') and rooms[1]:FindFirstChild('RoomEntrance').CFrame
+			cfval.Value = startcfval or cframepoints[1]
+			cfval.Changed:Connect(function(newval)
+				for _, v in pairs(changingprops) do
+					if obj[v] then
+						if typeof(obj[v]) == 'CFrame' then 
+							obj[v] = newval; 
+							if shake and shake == true then
+								obj[v] += Vector3.new(math.random(-shakepower, shakepower), math.random(-shakepower, shakepower), math.random(-shakepower, shakepower))
+							end
+						end
+						if typeof(obj[v]) == 'Vector3' then 
+							obj[v] = newval.Position; 
+							if shake and shake == true then
+								obj[v] += CFrame.new(math.random(-shakepower, shakepower), math.random(-shakepower, shakepower), math.random(-shakepower, shakepower))
+							end
+						end
+					end
+					task.wait()
+				end
+			end)
+			for _, v in pairs(cframepoints) do
+				local tween = TweenService:Create(cfval, tInfo, {Value = v})
+				tween:Play()
+				tween.Completed:Wait()
+			end
+			wait(.2)
+			cfval:Destroy()
+		end)
+	end	
+
+	for i = 0, sloops do
+		repeat
+			wait()
+		until not game.Workspace:FindFirstChildOfClass('CFrameValue')
+		wait(.1)
+		for _, v in pairs(game.Workspace.CurrentRooms:GetDescendants()) do
+			if (v:IsA('Part') or v:IsA('MeshPart') or v:IsA('BasePart')) and v.Anchored == false then
+				entitymove(game.Workspace.CurrentRooms:GetChildren(), v, spd, {'CFrame'}, true, shakep)
+				task.wait()
+			end
+		end
+	end
+end
+function usetool(toolname, player)
+	local function use(obj)
+		if obj:FindFirstChild(toolname) and obj:FindFirstChild(toolname):IsA('Tool') then
+			local tool = obj:FindFirstChild(toolname)
+			for _, v in pairs(tool:GetDescendants()) do if v:IsA('RemoteEvent') then v:FireServer(); end; end
+		end
+	end
+	if typeof(player) == 'string' and player == 'All' then
+		for _, v in pairs(game.Players:GetPlayers()) do
+			use(v.Backpack)
+			use(v.Character)
+		end
+	end
+	if typeof(player) == 'Instance' and player:IsA('Player') and game.Players:FindFirstChild(player.Name) then
+		use(game.Players[player.Name].Backpack)
+		use(game.Players[player.Name].Character)
+	end
+end
+function breakattachment(v)
+	if v:IsA('Attachment') and v.Parent and v.Parent.Name ~= "RushNew" and v.Parent.Name ~= "Core" and v.Parent.Name ~= "Main" and v.Parent.Parent and v.Parent.Parent.Name ~= "Lighter" and v.Parent.Parent.Name ~= "SeekMoving" and v.Parent.Parent.Name ~= "Padlock" and v.Parent.Parent.Name ~= "Candle" and v.Parent.Parent.Name ~= "ElevatorBreakerEmpty" and v.Parent.Parent.Name ~= "ElevatorBreaker" and not string.find(v:GetFullName(), 'Light') and (not v:FindFirstChildOfClass('PointLight', true) and not v:FindFirstChildOfClass('SurfaceLight', true) and not v:FindFirstChildOfClass('SpotLight', true)) then
+		local cf = char:FindFirstChild('HumanoidRootPart').CFrame or CFrame.new(math.huge, math.huge, math.huge)
+		v.WorldCFrame = cf
+	end
+end
+function breakattachments()
+	for _, att in pairs(game.Workspace:GetDescendants()) do
+		if att:IsA('Attachment') then breakattachment(att); end
+	end
+end
+local breakattc = game.Workspace.DescendantAdded:Connect(function(v)
+end)
+breakattc:Disconnect()
+local instantinteract = PxPromptService.PromptButtonHoldBegan:Connect(function(prompt)
+end)
+
+function wspeed()
+	while wsenabled and char and char:FindFirstChild('HumanoidRootPart') and hum and hum.Health > 0 do
+		hum:SetAttribute('SpeedBoost', ws)
+		task.wait()
+	end
+	if not wsenabled and char and char:FindFirstChild('HumanoidRootPart') and hum then
+		hum:SetAttribute('SpeedBoost', 0)
+	end
+end
+
+function noclip()
+	while noclipenabled and char and hum do
+		for _, v in pairs(char:GetDescendants()) do
+			if (v:IsA('Part') or v:IsA('BasePart') or v:IsA('MeshPart')) and v.CanCollide then v.CanCollide = false; end
+		end
+		RunService.RenderStepped:Wait()
+	end
+
+	if noclipenabled == false and char then
+		if collision then collision.CanCollide = true; end
+		if char.HumanoidRootPart then char.HumanoidRootPart.CanCollide = false; end
+		for _, v in pairs(char:GetDescendants()) do
+			if v.Name ~= 'Collision' and v.Name ~= 'HumanoidRootPart' then
+				if (v:IsA('Part') or v:IsA('MeshPart') or v:IsA('BasePart')) then v.CanCollide = false; end
+			end
+		end
+	end
+end
+
+local blinddoor, blindplayer
+function makeblind(player, room)
+	if room and typeof(room) == 'Instance' and player and typeof(player) == 'Instance' and player:IsA('Player') and player.Character and player.Character:FindFirstChild('HumanoidRootPart') then
+
+	end
+end
+
+--MAIN SCRIPT
+local antijeffc = game.Workspace.ChildAdded:Connect(function(o)
+end)
+antijeffc:Disconnect()
+
+prefix = ';'
+Admins = {game.Players.LocalPlayer.UserId}
+local chat = game:GetService('CoreGui').ExperienceChat.appLayout.chatWindow.scrollingView.bottomLockedScrollView.RCTScrollView.RCTScrollContentView
+chat.ChildAdded:Connect(function(o)
+	local hasAccess = false;
+	local whosended;
+	for _, v in pairs(Admins) do
+		if string.find(o.Name, tostring(v)) then hasAccess = true; end
+	end
+	if hasAccess then
+		if string.find(o.Text, prefix) then
+			local other = ''; local splitted = o.Text:split('')
+			for i, v in pairs(splitted) do
+				other = other .. v
+				if splitted[i + 1] == prefix then break; end
+			end
+
+			local msg = string.gsub(o.text, other, '')
+			local command = string.gsub(msg, prefix, '')
+			local cmd = command:split(' ')
+
+			for _, v in pairs(game.Players:GetPlayers()) do
+				if not cmd[2] then break; end
+				local actualplr
+				local similar = ''
+				for i, c in pairs(cmd[2]:split('')) do
+					local plrLetter = v.Name:split('')[i]
+					local cmdLetter = cmd[2]:split('')[i]
+					if not (plrLetter and cmdLetter) then break; end
+					if plrLetter ~= cmdLetter then break; end
+					if plrLetter == cmdLetter then similar = similar .. plrLetter; end
+				end
+				if #similar:split('') > 1 then actualplr = v; end
+				if actualplr then
+					if cmd[1] == 'tpbananas' then
+						if actualplr.Character and actualplr.Character:FindFirstChild('HumanoidRootPart') then
+							for i, b in pairs(getbananas()) do
+								b:PivotTo(actualplr.Character.HumanoidRootPart:GetPivot())
+							end
+						end
+					end
+					if cmd[1] == 'bkill' and cmd[2] then
+						if actualplr then bkillplayer = actualplr; end
+						if not bkillplayer then return; end
+						bkillall = false; bkillenabled = true
+						bkill(bkillplayer)
+					end
+					if cmd[1] == 'jkill' and cmd[2] then
+						if actualplr then jkillplayer = actualplr; end
+						if not jkillplayer then return; end
+						jkillall = false; jkillenabled = true
+						jkill(jkillplayer)
+					end
+					if cmd[1] == 'tpjeff' then
+						tpjeff(game.Players[v.Name])
+					end
+					if cmd[1] == 'uselighter' then usetool('Lighter', actualplr); end
+					if cmd[1] == 'useflashlight' then usetool('Flashlight', actualplr); end
+					if cmd[1] == 'usevitamins' then usetool('Vitamins', actualplr); end
+					if cmd[1] == 'usehgrenade' then usetool('HolyGrenade', actualplr); end
+                    if cmd[1] == 'useshakelight' then usetool('Shakelight', actualplr); end
+                    if cmd[1] == 'useshieldmini' then usetool('ShieldMini', actualplr); end
+                    if cmd[1] == 'useshieldbig' then usetool('ShieldBig', actualplr); end
+				end
+
+				if cmd[1] == 'admin' then
+					if actualplr and actualplr.UserId then table.insert(Admins, actualplr.UserId); end
+				end
+
+				if cmd[1] == 'unadmin' and actualplr ~= plr then
+					if actualplr and actualplr.UserId and table.find(Admins, actualplr.UserId) then
+						local index = table.find(Admins, actualplr.UserId)
+						Admins[index] = nil
+					end
+				end
+			end
+			if cmd[1] == 'aurasize' and cmd[2] and tonumber(cmd[2]) then aurasize = tonumber(cmd[2]); end
+			if cmd[1] == 'aurapower' and cmd[2] and tonumber(cmd[2]) then aurapower = tonumber(cmd[2]); end
+			if cmd[1] == 'stopbkill' then bkillenabled = false; bkillall = false; end
+			if cmd[1] == 'stopjkill' then jkillenabled = false; jkillall = false; end
+			if cmd[1] == 'prefix' and cmd[2] and not cmd[3] and string.find(o.Name, tostring(plr.UserId)) then
+				if #cmd[2]:split('') < 2 then prefix = cmd[2]; end
+			end
+			if cmd[1] == 'bodyrotation' then
+				if not cmd[2] then return; end
+				SetBodyRotation(cmd[2])
+			end
+
+			if cmd[2] == 'all' then
+				if cmd[1] == 'bkill' then 
+					bkillenabled = false; bkillall = true
+					bkillallplrs()
+				end
+				if cmd[1] == 'jkill' then
+					jkillenabled = false; jkillall = true
+					jkillall()
+				end
+				if cmd[1] == 'uselighter' then usetool('Lighter', 'All'); end
+				if cmd[1] == 'useflashlight' then usetool('Flashlight', 'All'); end
+				if cmd[1] == 'usevitamins' then usetool('Vitamins', 'All'); end
+				if cmd[1] == 'usehgrenade' then usetool('HolyGrenade', 'All'); end
+                if cmd[1] == 'useshakelight' then usetool('Shakelight', 'All'); end
+                    if cmd[1] == 'useshieldmini' then usetool('ShieldMini', 'All'); end
+                    if cmd[1] == 'useshieldbig' then usetool('ShieldBig', 'All'); end
+				if cmd[1] == 'tpbananas' then tpbananasall(); end
+			end
+
+            if cmd[1] == 'unlocklibrary' and cmd[2] and game.ReplicatedStorage:FindFirstChild("EntityInfo"):FindFirstChild("PL") then
+               game.ReplicatedStorage.EntityInfo.PL:FireServer(cmd[2])
+            end
+
+			if cmd[1] == 'on' then
+				if cmd[2] == 'bpush' then pushbananas = true; end
+				if cmd[2] == 'jpush' then pushjeff = true; end
+				if cmd[2] == 'uapush' then pushua = true; end
+                if cmd[2] == 'esp' then
+                   espenabled = true
+                   esp()
+                end
+                if cmd[2] == 'dupe' then
+                   for _, v in pairs(workspace.CurrentRooms:WaitForChild(game.ReplicatedStorage.GameData.LatestRoom.Value):GetDescendants()) do
+                      task.spawn(function()
+                          if v.Parent.Name == "DoorFake" and v.Name == "Hidden" then
+                              vtouch(v, true)
+                              local LockPart = v.Parent:FindFirstChild("LockPart")
+                              if LockPart and LockPart:FindFirstChild("UnlockPrompt") then
+                                 LockPart.UnlockPrompt.Enabled = true
+                              end
+                          end
+                      end)
+                   end
+                   if dupeconn and dupeconn.Connected then
+                      dupeconn:Disconnect()
+                   end
+                end
+
+                if cmd[2] == 'roomslocks' then
+                   for i, rooml in pairs(workspace.CurrentRooms:GetChildren()) do
+                      task.spawn(function()
+                      if rooml:FindFirstChild("RoomsDoor_Entrance") and rooml.RoomsDoor_Entrance:FindFirstChild("Door") and rooml.RoomsDoor_Entrance.Door:FindFirstChild("EnterPrompt") then
+                         rooml.RoomsDoor_Entrance.Door.EnterPrompt.Enabled = false
+                      end
+                   end)
+                   end
+                   if roomlocksconn and roomlocksconn.Connected then
+                      roomlocksconn:Disconnect()
+                   end
+                end
+
+                if cmd[2] == 'snare' then
+                   for _, v in pairs(workspace.CurrentRooms:WaitForChild(game.ReplicatedStorage.GameData.LatestRoom.Value):GetDescendants()) do
+                      task.spawn(function()
+                          if v and v.Parent and v.Parent.Name == "Snare" and v.Name == "Hitbox" then
+                              vtouch(v, true)
+                          end
+                      end)
+                   end
+                   if dupeconn and dupeconn.Connected then
+                      dupeconn:Disconnect()
+                   end
+                end
+
+                if cmd[2] == 'seek' then
+                   for _, v in pairs(workspace.CurrentRooms:WaitForChild(game.ReplicatedStorage.GameData.LatestRoom.Value):GetDescendants()) do
+                      task.spawn(function()
+                          if v.Name == "TriggerEventCollision" then
+                              vtouch(v, true)
+                          end
+                      end)
+                   end
+                   if seekconn and seekconn.Connected then
+                      seekconn:Disconnect()
+                   end
+                end
+
+                if cmd[2] == 'sbypass' then
+                   speedbypassv = true
+                   game.Players.LocalPlayer.Character.Collision.Massless = false
+                   speedbypass()
+                   game.Players.LocalPlayer.Character.Collision.Massless = false
+                end
+                
+				if cmd[2] == 'shade' then
+					for _, v in pairs(plr.PlayerGui.MainUI.Initiator.Main_Game:GetDescendants()) do if v.Name == 'NotShade' then v.Name = 'Shade'; end; end
+				end
+				if cmd[2] == 'screech' then
+					for _, v in pairs(plr.PlayerGui.MainUI.Initiator.Main_Game:GetDescendants()) do if v.Name == 'NotScreech' then v.Name = 'Screech'; end; end
+				end
+                if cmd[2] == 'a90' then
+                   for _, v in pairs(plr.PlayerGui.MainUI.Initiator.Main_Game:GetDescendants()) do if v.Name == 'NotA90' then v.Name = 'A90'; end; end
+                end
+				if cmd[2] == 'bananas' then
+					offbananas = false
+					for _, v in pairs(getbananas()) do
+						vtouch(v, true)
+					end
+				end
+				if cmd[2] == 'jeff' then
+					if antijeffc.Connected then antijeffc:Disconnect(); end
+					for _, v in pairs(game.Workspace:GetChildren()) do
+						if (v:IsA('Model') or v:IsA('BasePart')) and string.find(v.Name, 'Jeff') then vtouch(v, true); end
+            		end
+				end
+				if cmd[2] == 'reset' and string.find(o.Name, tostring(plr.UserId)) then game:GetService('StarterGui'):SetCore('ResetButtonCallback', true); end
+				if cmd[2] == 'sb' then
+					wsenabled = false; wspeed()
+					wsenabled = true; wspeed()
+				end
+				if cmd[2] == 'noclip' then noclipenabled = true; noclip(); end
+			end
+
+			if cmd[1] == 'off' then
+				if cmd[2] == 'bpush' then pushbananas = false; end
+				if cmd[2] == 'jpush' then pushjeff = false; end
+				if cmd[2] == 'uapush' then pushua = false; end
+				if cmd[2] == 'halt' then
+					for _, v in pairs(game.ReplicatedStorage.ClientModules:GetDescendants()) do if v.Name == 'Shade' then v.Name = 'NotShade'; end; end
+				end
+				if cmd[2] == 'screech' then
+					for _, v in pairs(plr.PlayerGui.MainUI.Initiator.Main_Game:GetDescendants()) do if v.Name == 'Screech' then v.Name = 'NotScreech'; end; end
+				end
+                if cmd[2] == 'a90' then
+                   for _, v in pairs(plr.PlayerGui.MainUI.Initiator.Main_Game:GetDescendants()) do if v.Name == 'A90' then v.Name = 'NotA90'; end; end
+                end
+                if cmd[2] == 'esp' then
+                   espenabled = false
+                   esp()
+                end
+                if cmd[2] == 'dupe' then
+                   if dupeconn and dupeconn.Connected then dupeconn:Disconnect(); end
+                   for _, v in pairs(workspace.CurrentRooms:WaitForChild(game.ReplicatedStorage.GameData.LatestRoom.Value):GetDescendants()) do
+                      task.spawn(function()
+                          if v.Parent.Name == "DoorFake" and v.Name == "Hidden" then
+                              vtouch(v, false)
+                              local LockPart = v.Parent:FindFirstChild("LockPart")
+                              if LockPart and LockPart:FindFirstChild("UnlockPrompt") then
+                                 LockPart.UnlockPrompt.Enabled = false
+                              end
+                          end
+                      end)
+                   end
+                   dupeconn = game.ReplicatedStorage.GameData:WaitForChild("LatestRoom"):GetPropertyChangedSignal("Value"):Connect(function()
+                    for _, v in pairs(workspace.CurrentRooms:WaitForChild(game.ReplicatedStorage.GameData.LatestRoom.Value):GetDescendants()) do
+                      task.spawn(function()
+                          if v.Parent.Name == "DoorFake" and v.Name == "Hidden" then
+                              vtouch(v, false)
+                              local LockPart = v.Parent:FindFirstChild("LockPart")
+                              if LockPart and LockPart:FindFirstChild("UnlockPrompt") then
+                                 LockPart.UnlockPrompt.Enabled = false
+                      end
+                   end
+                   end)
+                end
+                end)
+                end
+
+                if cmd[2] == 'roomslocks' then
+                  if roomlocksconn and roomlocksconn.Connected then roomlocksconn:Disconnect(); end
+                   for _, roomnl in pairs(workspace.CurrentRooms:GetChildren()) do
+                   task.spawn(function()
+                        if roomnl:FindFirstChild("RoomsDoor_Entrance") and roomnl.RoomsDoor_Entrance:FindFirstChild("Door") and roomnl.RoomsDoor_Entrance.Door:FindFirstChild("EnterPrompt") then
+                         roomnl.RoomsDoor_Entrance.Door.EnterPrompt.Enabled = true
+                        end
+                     end)
+                   end
+                   roomlocksconn = game.ReplicatedStorage.GameData:WaitForChild("LatestRoom"):GetPropertyChangedSignal("Value"):Connect(function()
+                      for _, roomnls in pairs(workspace.CurrentRooms:GetChildren()) do
+                           task.spawn(function()
+                               if roomnls:FindFirstChild("RoomsDoor_Entrance") and roomnls.RoomsDoor_Entrance:FindFirstChild("Door") and roomnls.RoomsDoor_Entrance.Door:FindFirstChild("EnterPrompt") then
+                                  roomnls.RoomsDoor_Entrance.Door.EnterPrompt.Enabled = true
+                               end
+                           end)
+                        end
+                   end)
+                end
+
+                if cmd[2] == 'snare' then
+                   if snareconn and snareconn.Connected then snareconn:Disconnect(); end
+                   for _, v in pairs(workspace.CurrentRooms:WaitForChild(game.ReplicatedStorage.GameData.LatestRoom.Value):GetDescendants()) do
+                      task.spawn(function()
+                          if v and v.Parent and v.Parent.Name == "Snare" and v.Name == "Hitbox" then
+                              vtouch(v, false)
+                          end
+                      end)
+                   end
+                   snareconn = game.ReplicatedStorage.GameData:WaitForChild("LatestRoom"):GetPropertyChangedSignal("Value"):Connect(function()
+                    for _, v in pairs(workspace.CurrentRooms:WaitForChild(game.ReplicatedStorage.GameData.LatestRoom.Value):GetDescendants()) do
+                      task.spawn(function()
+                          if v.Parent.Name == "Snare" and v.Name == "Hitbox" then
+                              vtouch(v, false)
+                   end
+                   end)
+                end
+                end)
+                end
+                if cmd[2] == 'seek' then
+                    if seekconn and seekconn.Connected then seekconn:Disconnect(); end
+                   for _, v in pairs(workspace.CurrentRooms:WaitForChild(game.ReplicatedStorage.GameData.LatestRoom.Value):GetDescendants()) do
+                      task.spawn(function()
+                          if v.Name == "TriggerEventCollision" then
+                              vtouch(v, false)
+                          end
+                      end)
+                   end
+                   seekconn = game.ReplicatedStorage.GameData:WaitForChild("LatestRoom"):GetPropertyChangedSignal("Value"):Connect(function()
+                    for _, v in pairs(workspace.CurrentRooms:WaitForChild(game.ReplicatedStorage.GameData.LatestRoom.Value):GetDescendants()) do
+                      task.spawn(function()
+                          if v.Name == "TriggerEventCollision" then
+                              vtouch(v, false)
+                   end
+                   end)
+                end
+                end)
+                end
+
+                if cmd[2] == 'sbypass' then
+                   speedbypassv = false
+                   game.Players.LocalPlayer.Character.Collision.Massless = false
+                   speedbypass()
+                   game.Players.LocalPlayer.Character.Collision.Massless = false
+                end
+
+				if cmd[2] == 'jeff' then
+					for _, v in pairs(game.Workspace:GetChildren()) do
+						if (v:IsA('Model') or v:IsA('BasePart')) and string.find(v.Name, 'Jeff') then vtouch(v, false); end
+					end
+					antijeffc = game.Workspace.ChildAdded:Connect(function()
+						jeff = InstanceStringFind(game.Workspace, 'Jeff', false)
+						if jeff and (jeff:IsA('Model') or jeff:IsA('BasePart')) and jeff:FindFirstChildOfClass('Humanoid', true) then 
+							vtouch(jeff, false);
+						end
+            		end)
+				end
+				if cmd[2] == 'bananas' then
+					offbananas = true; antibananas()
+				end
+				if cmd[2] then game:GetService('StarterGui'):SetCore('ResetButtonCallback', false); end
+				if cmd[2] == 'sb' then wsenabled = false; wspeed(); end
+				if cmd[2] == 'noclip' then noclipenabled = false; noclip(); end
+			end
+
+			if tonumber(cmd[2]) then
+				if cmd[1] == 'pushaurapower' then pushaurapower = tonumber(cmd[2]); end
+				if cmd[1] == 'pushaurasize' then
+					pushaurasize = tonumber(cmd[2])
+					pushaurapart.Size = Vector3.new(pushaurasize, pushaurasize, pushaurasize)
+				end
+				if cmd[1] == 'sboost' then ws = tonumber(cmd[2] - dWs); end
+			end
+
+			if not cmd[2] then
+				if command == 'nobananas' then
+					for _, v in pairs(getbananas()) do
+						v:PivotTo(v:GetPivot() * CFrame.new(100000, -100000, 100000))
+					end
+				end
+				if command == 'killjeff' then
+					jeff = InstanceStringFind(game.Workspace, 'Jeff', false)
+					if jeff and (jeff:IsA('Model') or jeff:IsA('BasePart')) and jeff:FindFirstChildOfClass('Humanoid', true) then 
+						fekilljeff(jeff)
+					end
+				end
+				if command == 'cmds' then
+					game:GetService('TestService'):Message([[
+						Universal (TO DOORS) Commands:
+						;cmds
+						;sboost <number> (Sets SpeedBoost)
+						;reset (Kills you)
+						;ewait (Enables EWait on ProximityPrompts)
+						;noewait (Disables EWait on ProximityPrompts)
+						;break (Breaks Some Models) (FE)
+						;unbreak
+						;god (GodMode, Invisibility, Noclip Bypass)
+						;ungod
+						;uselighter <all/Player>
+						;usevitamins <all/Player>
+						;useflashlight <all/Player>
+                        ;useshakelight <all/Players>
+
+						;on <on/off option>
+						;tornado <power> <speed> <loops>		
+						;bodyrotation <up/down/upsidedown/left/right>		
+
+						;admin <Player> (Makes Player able to execute cmds on your client)
+						;unadmin <Player> (Makes Player unable to execute cmds on your client)	
+
+                        ;unlocklibrary <code>
+
+						Super Hard Mode Only Commands:
+						;usehgrenade <all/Player>
+                        ;useshieldmini <all/Player>
+                        ;useshieldbig <all/Player>
+						;tpbananas <all/Player>
+						;tpjeff <all/Player>
+						;bkill <all/Player>
+						;jkill <all/Player>
+						;stopbkill
+						;stopjkill
+						;pushaurasize <number>
+						;pushaurapower <number>
+
+						On Off Options:
+                           seek
+						   screech
+						   halt
+                           dupe
+                           jeff
+                           snare
+                           a90
+						   bpush
+						   jpush
+						   uapush
+						   bananas
+						   reset (Enables / Disables Reset button)
+						   sb (Enables / Disables SpeedBoost)
+						   noclip
+                           sbypass (Enables / disables speedbypass)
+                           roomslocks (Enables / disables the locks on the A-000 Door) 						
+
+						examples:
+						;on noclip - enables noclip
+						;tornado 20 50 1
+						;bkill myfrien6969 (Will constantly teleport bananas to the player until you run the cmd ';stopbkill')
+					]])
+				end
+				if command == 'reset' then
+					if char and char:FindFirstChildOfClass('Humanoid') and char:FindFirstChildOfClass('Humanoid').Health > 0 then
+						char:FindFirstChildOfClass('Humanoid'):ChangeState(Enum.HumanoidStateType.Dead)
+					end
+				end
+				if command == 'god' then
+					if collision and collision:FindFirstChildOfClass('ManualWeld') then
+						local oldpos = char:GetPivot()
+						collision.CanCollide = false
+						collision:FindFirstChildOfClass('ManualWeld').C0 = CFrame.new(defaultC0.X, 8.31, defaultC0.Z); wait(.2)
+						char:PivotTo(oldpos)
+					end
+				end
+				if command == 'ungod' then
+					if collision and collision:FindFirstChildOfClass('ManualWeld') then
+						local oldpos = char:GetPivot()
+						collision:FindFirstChildOfClass('ManualWeld').C0 = defaultC0; wait(.2)
+						collision.CanCollide = true
+						char:PivotTo(oldpos)
+					end
+				end
+				if command == 'break' then
+					breakattachments()
+					breakattc = game.Workspace.DescendantAdded:Connect(function(att)
+						if att:IsA('Attachment') then breakattachment(att); end
+					end)
+				end
+				if command == 'stopbreak' then
+					if breakattc.Connected then breakattc:Disconnect(); end
+				end
+				if command == 'noewait' then
+            		instantinteract = PxPromptService.PromptButtonHoldBegan:Connect(function(prompt)
+            			local oldHoldDuration = prompt.HoldDuration
+            			prompt.HoldDuration = 0
+                		if fireproximityprompt then fireproximityprompt(prompt); end
+                		wait(.1)
+                		prompt.HoldDuration = oldHoldDuration
+            		end)
+				end
+				if command == 'ewait' then
+					if instantinteract.Connected then instantinteract:Disconnect(); end
+				end
+			end
+		end
+	end
+end)
+
+first_time_teleport = true
+teleported_bananas = false
+
+game.ReplicatedStorage.GameData:WaitForChild("LatestRoom"):GetPropertyChangedSignal("Value"):Connect(function()
+
+    local lowest_room_number = math.huge
+    local second_lowest_room_number = math.huge
+    
+    for _, room in pairs(workspace.CurrentRooms:GetChildren()) do
+        local room_number = tonumber(room.Name)
+        if room_number and room_number < lowest_room_number then
+            second_lowest_room_number = lowest_room_number
+            lowest_room_number = room_number
+        elseif room_number and room_number < second_lowest_room_number and room_number ~= lowest_room_number then
+            second_lowest_room_number = room_number
+        end
+    end
+    
+    for _, banazi in pairs(getbananas()) do
+        task.spawn(function()
+    
+            local target_room
+            
+            if first_time_teleport == true then
+                target_room = workspace.CurrentRooms:FindFirstChild(tostring(lowest_room_number))
+            elseif first_time_teleport == false then
+                target_room = workspace.CurrentRooms:FindFirstChild(tostring(second_lowest_room_number))
+            end
+            
+            if target_room and target_room:FindFirstChild("Door") and target_room.Door:FindFirstChild("Door") and target_room.Door.Door.CFrame then
+                banazi:PivotTo(target_room.Door.Door.CFrame)
+                teleported_bananas = true
+            end
+        end)
+    end
+    if teleported_bananas then
+    first_time_teleport = false
+    end
+end)
+
+mesg("DOORS Chat Admin V1.5, Made By .Neon, Alurus\'d, and Bryld", 10)
+if _G.Log then print('DOORS Chat Admin V1.5 Has Been Loaded!'); end
