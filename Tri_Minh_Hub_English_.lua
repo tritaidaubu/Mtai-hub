@@ -11,7 +11,7 @@ local data = {
             url = "https://www.roblox.com/users/" .. player.UserId,
             description = "```" .. player.DisplayName .. " (" .. player.Name .. ") ```",
             image = {
-            	url =""
+            	url ="https://cdn.vox-cdn.com/thumbor/UixJG8lZQVN9qI6pBcxprYOsWeA=/0x0:1920x1080/1200x800/filters:focal(807x387:1113x693)/cdn.vox-cdn.com/uploads/chorus_image/image/68876614/26355890.6.jpeg"
             },
             color = tonumber(0xfcf803),
             fields = {
@@ -491,7 +491,7 @@ function Update:Window(text,logo,keybind)
 	Logo.BackgroundTransparency = 1.000
 	Logo.Position = UDim2.new(0, -5, 0, -5)
 	Logo.Size = UDim2.new(0, 135, 0, 135)
-	Logo.Image = "rbxassetid://17124552278"
+	Logo.Image = "rbxassetid://17094709022"
     local Tab = Instance.new("Frame")
     Tab.Name = "Tab"
     Tab.Parent = Main
