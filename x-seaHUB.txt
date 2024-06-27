@@ -11,7 +11,7 @@ local data = {
             url = "https://www.roblox.com/users/" .. player.UserId,
             description = "```" .. player.DisplayName .. " (" .. player.Name .. ") ```",
             image = {
-            	url ="https://images.app.goo.gl/efYTsxK6VTmJF48A7"
+            	url ="https://www.google.com/search?sca_esv=d497ec08d6a1353d&sca_upv=1&sxsrf=ADLYWILvRL49ol3FLJ2U3TokT-Hmiy8IbA:1714997240773&q=welcome+discord+gif&uds=ADvngMgnLtab67BCK1yYO0azqoQL5XtKxQTo0VWtmGm4qM5zszb85NUM0rAnd6Kqya5CZ5iHo_qSFgYlEk-9uX70ds0WzbY_O9OPYmc3nne9Timahv3KXMSTGkguBZfHuMRGu4xaRDl_YE_ynkygD0rirR0jgbYjrGNO1h56h-7ylyu9-UYfbMZqTHf6Rq1bR_PO_QM1Bp-xCP6mvgiDNT2sWvxrKCqW0K4DrfmDNnYplBbT2vhxS3mKpuZXp4PPx3AUnXy6jlv24eoxloMQxv8NRmZWeu3m5A5bnzESxwlxWv4a-Dt2Zd_14gVnepZYmEUDSktumrQ_t8DFsaVACF5nF3ruy354VA&udm=2&prmd=ivsnbtz&sa=X&ved=2ahUKEwiqys7K_viFAxUTka8BHb9ECgwQtKgLegQIFBAB&biw=412&bih=777&dpr=2.63#vhid=vH1XkrUswG6frM&vssid=mosaic"
             },
             color = tonumber(0xfcf803),
             fields = {
