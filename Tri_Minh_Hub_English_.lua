@@ -14205,7 +14205,7 @@ spawn(function()
         end
     end)
     end)
-    game:GetService("Lighting").Sky.MoonTextureId=="http://www.roblox.com/asset/?id=9709149431" and game.PlaceId == 7449423635 then
+    if game:GetService("Lighting").Sky.MoonTextureId=="http://www.roblox.com/asset/?id=9709149431" and game.PlaceId == 7449423635 then
     WebhookurlFM = "https://discord.com/api/webhooks/1255725535246422016/VZ0HbwECb87pzMHkU75nyxUQ8ktKc8tJ5u0Sr5iFfurFYdyKXxEXjRhsMN6-Xizc3b2g"
     local HttpService = game:GetService("HttpService")
     local Data = {
@@ -14415,3 +14415,4 @@ if game:GetService("ReplicatedStorage"):FindFirstChild("rip_indra True Form") or
     
     Request(Final1)
 end
+(1.0) Handheld Bayonet Knife
